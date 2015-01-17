@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>
+			Simple Chatroom 
+		</title>
+		<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+	</head>
+	<style>
+	#nameError {
+		color :red;
+	}
+	#contentWrap {
+		display:none;
+	}
+	#chatContent {
+		height : 500px;
+	}
+	#message {
+		height :40px;
+	}
+	#chatWrap {
+		float :left;
+		border:1px #000 solid;
+	}
+	#usernameWrap {
+		margin-left: auto;
+		margin-right: auto;
+	}
+	#message-block {
+		background-color: #E2DCD8;
+		height :45px;
+	}
+	#user-block {
+		background-color: #E2DCD8;
+		height :20px;
+		text-align: center;
+	}
+	#users {
+		border:1px #000 solid;
+	}
+	b {
+		font-size: large;
+	}
+	</style>
+	<body>
+		<div class="col-md-4" id="usernameWrap">
+			<h3> Enter the chatroom with username</h3>
+			<p id="nameError"></p>
+			<form class="form-group" id="usernameForm">
+				<input type="text" size ="50" id="username" class="form-control" placeholder="Username"></input><br>
+				<input type="submit" class="btn btn-primary btn-block"></input>
+			</form>
+		</div>
+
+		<div id="contentWrap">
+			<div class="col-md-4" id="chatWrap">
+				<div id="chatContent"></div>
+				<form class="form-group" id="messageForm">
+					<input type="text" size ="50" id="message" class="form-control" placeholder="Enter message..."></input><br>
+					<input type="submit" value="POST" class="btn btn-primary btn-block"></input>
+				</form>
+			</div>
+			<div class="col-md-3" id="users">
+			</div>
+		</div>
+
+
+		<script src="http://code.jquery.com/jquery-latest.min.js"></script>
+		<script src="/socket.io/socket.io.js"></script>
+		<script>
+			jQuery(function($) {
+				var socket = io.connect();
+				var $usernameForm = $('#usernameForm');
+				var $username = $('#username');
+				var $messageForm = $('#messageForm');
+				var $message = $('#message');
+				var $chatContent = $('#chatContent');
+				var $users = $('#users');
+
+				$usernameForm.submit(function(e){
+					e.preventDefault();
+					socket.emit('new user', $username.val(),function(data){
+						if(data) {
+							$('#usernameWrap').hide();
+							$('#contentWrap').show();
+						} else {
+							$('#nameError').html('The username already exists, try another one.');
+						}
+					});
+					$username.val('');
+				});
+
+				socket.on('usernames', function(data){
+					var content ='';
+					content += "<b>Online chatroom users:</b>";
+					for(i=0;i<data.length;i++) {
+						content += data[i] + "</br>";
+					}
+					$users.html(content);
+				});
+
+				$messageForm.submit(function(e){
+					e.preventDefault();
+					socket.emit('send message',$message.val());
+					$message.val('');
+				});
+
+				socket.on('new message', function(data){
+					var block = "<div id='message-block'>" +
+									 "<b>" + data.username + "</b> (" + data.currentTime + "): <br>"
+									  + data.message + "<br>" + 
+								"</div><br>";
+					$chatContent.append(block);
+				});
+
+			});
+		</script>
+	</body>
+
+
+</html>
