@@ -93,7 +93,7 @@
 
 				socket.on('usernames', function(data){
 					var content ='';
-					content += "<b>Online chatroom users:</b>";
+					content += "<b>Online chatroom users:</b><br>";
 					for(i=0;i<data.length;i++) {
 						content += data[i] + "</br>";
 					}
